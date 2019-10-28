@@ -1,253 +1,141 @@
 #include<stdio.h>
 #include<stdlib.h>
-
-struct node
+#define MAX 7
+struct queue
 {
-      struct node *prev;
-      int data;
-      struct node *next;
+	int data;
+	int priority;
+	struct queue * next;
 };
 
-void InsertFirst(struct node **,int );
-void InsertLast(struct node **,int );
-void Display(struct node *);
-int CountNode(struct node *);
-int SearchAllOccurances(struct node *,int );
-int SearchFirstOccurance(struct node *,int );
-int DeleteFirst(struct node **);
-int DeleteLast(struct node **);
+void enqueue(struct queue ** head,int data,int pri);
+int dequeue(struct queue ** head);
+int isqueuefull(struct queue *head);
+int countnode(struct queue * head);
+int isqueueempty(struct queue *head);
+void display(struct queue *head);
+
 int main()
 {
-      int ch,key,data,count,totoccur,pos;
-      struct node *first=NULL;
-      while(1)
-      {
-            printf("\n1-Insertfirst\n2-Insertlast\n3-Display\n4-Count nodes\n5-Search all occurances");
-            printf("\n6-Search first occurances\n7-Delete first\n8-Delete last\n9-Insert at position");
-            printf("\n10-Delete at position\n9-Exit\nEnter your choice:");
-            scanf("%d",&ch);
-            switch(ch)
-            {
-                  case 1:
-                        printf("\nEnter node data:");
-                        scanf("%d",&data);
-                        InsertFirst(&first,data);
-                        break;
-                  case 2:
-                        printf("\nEnter node data:");
-                        scanf("%d",&data);
-                        InsertLast(&first,data);
-                        break;
-                  case 3:Display(first);
-                        break;
-                  case 4:
-                        count=CountNode(first);
-                        printf("\nTotal nodes are:%d",count);
-                        break;
-                  case 5:
-                        printf("\nEnter key to search:");
-                        scanf("%d",&key);
-                        totoccur=SearchAllOccurances(first,key);
-                        printf("\nTotal occurances are:%d",totoccur);
-                        break;
-                  case 6:
-                        printf("\nEnter key to search:");
-                        scanf("%d",&key);
-                        pos=SearchFirstOccurance(first,key);
-                        printf("\nFirst position at which key is found is:%d",pos);
-                        break;
-                  case 7:
-                        data=DeleteFirst(&first);
-                        if(data!=-1)
-                              printf("%d deleted successfully",data);
-                        break;
-                  case 8:
-                        data=DeleteLast(&first);
-                        if(data!=-1)
-                              printf("%d deleted successfully",data);
-                        break;
-                  case 9:exit(1);
-                  default:printf("\nInvalid choice");
-            }
-      }
+	struct queue * first=NULL;
+	int data,ch,pri;
 
-      return 0;
+	while(1)
+	{
+		printf("\n1-Enqueue\n2-Dequeue\n3-Exit\nEnter your choice:");
+		scanf("%d",&ch);
+
+		switch(ch)
+		{
+			case 1:
+			      if(isqueuefull(first))
+                        {
+                              printf("Queue is full");
+                              break;
+                        }
+				printf("\nEnter the data:");
+				scanf("%d",&data);
+				printf("\nEnter priority:");
+				scanf("%d",&pri);
+				enqueue(&first,data,pri);
+				display(first);
+				break;
+			case 2:data=dequeue(&first);
+				if(data!=-1)
+					printf("\n%d data has been dequeued successfully",data);
+				display(first);
+				break;
+			case 3:exit(1);
+			default:printf("Invalid choice");
+		}
+	}
+
+	return 0;
 }
 
-void InsertFirst(struct node **head,int no)
+void enqueue(struct queue ** head,int data,int pri)
 {
-      struct node *newnode=NULL;
-      newnode=(struct node *)malloc(sizeof(struct node));
-
-      if(newnode==NULL)
-      {
-            printf("\nMemory allocation failed");
+	struct queue * newnode=NULL;
+	struct queue * temp=NULL;
+	newnode=(struct queue *)malloc(sizeof(struct queue));
+	if(newnode==NULL)
+	{
+		printf("Memory allocation failed");
             return ;
-      }
-      newnode->data=no;
-      newnode->prev=NULL;
+	}
+	newnode->data=data;
+	newnode->priority=pri;
 
-      if(*head==NULL)
-      {
-            newnode->next=NULL;
-            *head=newnode;
-            return ;
-      }
-      (*head)->prev=newnode;
-      newnode->next=*head;
-      *head=newnode;
+	if(*head==NULL||pri>=(*head)->priority)
+	{
+	      newnode->next=*head;
+	      *head=newnode;
+	      return ;
+	}
+
+	temp=*head;
+	while(temp->next!=NULL&&pri<temp->next->priority)
+            temp=temp->next;
+
+	newnode->next=temp->next;
+	temp->next=newnode;
 }
 
-void InsertLast(struct node **head,int no)
+int dequeue(struct queue ** head)
 {
-      struct node *newnode=NULL;
-      struct node *temp=NULL;
-      newnode=(struct node *)malloc(sizeof(struct node));
 
-      if(newnode==NULL)
+      struct queue *temp=NULL;
+      int data;
+      if(isqueueempty(*head))
       {
-            printf("\nMemory allocation failed");
-            return ;
-      }
-      newnode->data=no;
-      newnode->next=NULL;
-
-      if(*head==NULL)
-      {
-            newnode->prev=NULL;
-            *head=newnode;
-            return ;
+            printf("Priority queue is empty");
+            return -1;
       }
 
       temp=*head;
-      while(temp->next!=NULL)
-            temp=temp->next;
+      data=(*head)->data;
+      *head=(*head)->next;
+      temp->next=NULL;
+      free(temp);
 
-      newnode->prev=temp;
-      temp->next=newnode;
+      return data;
 }
 
-void Display(struct node *head)
+int isqueuefull(struct queue *head)
 {
-      if(head==NULL)
-      {
-            printf("\nLinked list is empty");
-            return ;
-      }
-      while(head!=NULL)
-      {
-            printf("|%d|->",head->data);
-            head=head->next;
-      }
+      if(countnode(head)==MAX)
+            return 1;
+      return 0;
 }
 
-int CountNode(struct node *head)
+int countnode(struct queue * head)
 {
       int count=0;
-
+      if(head==NULL)
+            return 0;
       while(head!=NULL)
       {
             count++;
             head=head->next;
       }
-      return count;
-}
-
-int SearchAllOccurances(struct node *head,int key)
-{
-      int count=0;
-
-      while(head!=NULL)
-      {
-            if(head->data==key)
-                  count++;
-            head=head->next;
-      }
 
       return count;
 }
 
-int SearchFirstOccurance(struct node *head,int key)
+int isqueueempty(struct queue *head)
 {
-      int pos=0;
-      while(head!=NULL)
-      {
-            pos++;
-            if(head->data==key)
-                  break;
-            head=head->next;
-      }
       if(head==NULL)
-            pos=0;
-      return pos;
+            return 1;
+      return 0;
 }
 
-int DeleteFirst(struct node **head)
+void display(struct queue *head)
 {
-      int data;
-      struct node * temp=NULL;
-      if(*head==NULL)
-            return -1;
-
-      /*if((*head)->next==NULL)
+      printf("\n");
+      while(head)
       {
-            data=(*head)->data;
-            *head=NULL;
-            return data;
+            printf("|%d||%d|-",head->data,head->priority);
+            head=head->next;
       }
-
-      data=(*head)->data;
-      *head=(*head)->next;
-      (*head)->prev->next=NULL;
-      free((*head)->prev);
-      (*head)->prev=NULL;
-      return data;*/
-      temp=*head;
-      *head=temp->next;
-      data=temp->data;
-      temp->next=NULL;
-      if(*head!=NULL)
-            (*head)->prev=NULL;
-      free(temp);
-      return data;
 }
 
-int DeleteLast(struct node **head)
-{
-      struct node * temp=NULL;
-      int data;
-
-      if(*head==NULL)
-            return -1;
-      /*
-      if((*head)->next==NULL)
-      {
-            data=(*head)->data;
-            *head=NULL;
-            return data;
-      }
-      temp=*head;
-      while(temp->next->next!=NULL)
-            temp=temp->next;
-
-      data=temp->next->data;
-      temp->next->prev=NULL;
-      free(temp->next);
-      temp->next=NULL;
-      */
-      temp=*head;
-      while(temp->next!=NULL)
-            temp=temp->next;
-
-      data=temp->data;
-      if(temp->prev==NULL)
-            *head=NULL;
-      else
-      {
-            temp->prev->next=NULL;
-            temp->prev=NULL;
-      }
-      free(temp);
-
-      return data;
-}
