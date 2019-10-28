@@ -1,124 +1,140 @@
 #include<stdio.h>
 #include<stdlib.h>
-#define MAX 5
 
-int rear=-1;
-int front=0;
-int queue[MAX];
-
-void enqueue(int data);
-int isqueuefull();
-int dequeue();
-int isqueueempty();
-void display();
-
+struct node
+{
+      int data;
+      struct node *next;
+};
+void Insertfirst(struct node **,int );
+void Insertlast(struct node **,int );
+void Display(struct node *);
+int DeleteFirst(struct node **);
+int DeleteLast(struct node **);
 int main()
 {
-	int ch,data;
+      int data,ch, deleteddata;
+      struct node *first=NULL;
+      while(1)
+      {
+            printf("\n1-Insert at first\n2-Insert at last\n3-Display\n4-Delete first node");
+            printf("\n5-Delete last node\n6-Exit\nEnter your choice:");
+            scanf("%d",&ch);
+            switch(ch)
+            {
+                  case 1:printf("\nEnter data:");
+                        scanf("%d",&data);
+                        Insertfirst(&first,data);
+                        break;
+                  case 2:printf("\nEnter data:");
+                        scanf("%d",&data);
+                        Insertlast(&first,data);
+                        break;
+                  case 3:Display(first);
+                        break;
+                  case 4:
+                        deleteddata=DeleteFirst(&first);
+                        printf("|%d| data deleted successfully",deleteddata);
+                        break;
+                  case 5:
+                        deleteddata=DeleteLast(&first);
+                        printf("|%d| data deleted successfully",deleteddata);
+                        break;
+                  case 6:exit(1);
+                  default:printf("\nInvalid choice");
+            }
+      }
 
-	while(1)
-	{
-		printf("\n1-Enqueue\n2-Dequeue\n3-Exit\nEnter your choice:");
-		scanf("%d",&ch);
-
-		switch(ch)
-		{
-			case 1: if(isqueuefull())
-				{
-					printf("\nQueue is full");
-					break;
-				}
-				printf("\nEnter the data:");
-				scanf("%d",&data);
-				enqueue(data);
-				display();
-				break;
-			case 2:data=dequeue();
-				if(data!=-1)
-					printf("\n%d data has been dequeued succesfully",data);
-				display();
-				break;
-			case 3:exit(1);
-			default:printf("Invalid choice");
-		}
-	}
-
-	return 0;
+      return 0;
 }
 
-void enqueue(int data)
+void Insertfirst(struct node **head,int no)
 {
-     /*	if(isqueuefull())
-	{
-		printf("\nQueue is full");
-		return ;
-        }
-     */
-	if(rear==MAX-1&&front>0)
-		rear=0;
-	else
-		rear++;
+      struct node *temp=NULL;
+      temp=(struct node *)malloc(sizeof(struct node));
 
-	queue[rear]=data;
+      if(temp==NULL)
+      {
+            printf("Memory allocation failed");
+            return ;
+      }
+      temp->data=no;
+      temp->next=*head;
+      *head=temp;
 }
-
-int isqueuefull()
+void Insertlast(struct node **head,int data)
 {
-	if((front==0&&rear==MAX-1)||(rear==front-1&&rear!=-1))
-		return 1;
-	return 0;
+      struct node *newnode=NULL;
+      struct node *temp=NULL;
+      newnode=(struct node *)malloc(sizeof(struct node));
+
+      if(newnode==NULL)
+      {
+            printf("Memory allocation failed");
+            return ;
+      }
+      newnode->data=data;
+      newnode->next=NULL;
+      if(*head==NULL)
+      {
+            *head=newnode;
+            return ;
+      }
+      temp=*head;
+      while(temp->next!=NULL)
+            temp=temp->next;
+      temp->next=newnode;
 }
 
-int dequeue()
+void Display(struct node *head)
 {
-	int data;
-	if(isqueueempty())
-	{
-		printf("\nQueue is empty");
-		return -1;
-	}
-
-	data=queue[front];
-
-	if(front==rear)
-	{
-		front=0;
-		rear=-1;  //Reset the front and rear
-	}
-	else if(front==MAX-1/*&&rear!=-1*/)
-		front=0;
-	else
-		front++;
-
-	return data;
+      if(head==NULL)
+      {
+            printf("\nLinked list is empty");
+            return ;
+      }
+      while(head!=NULL)
+      {
+            printf("|%d|",head->data);
+            head=head->next;
+      }
 }
 
-int isqueueempty()
+int DeleteFirst(struct node **head)
 {
-	if(rear==-1)
-		return 1;
-	return 0;
+      struct node *temp=NULL;
+      int no;
+      if(*head==NULL)
+            return -1;
+      temp=*head;
+      *head=temp->next;
+      temp->next=NULL;
+
+      no=temp->data;
+      free(temp);
+      return no;
 }
 
-void display()
+int DeleteLast(struct node **head)
 {
-	int i;
-	if(isqueueempty())
-		return ;
-	printf("\n");
+      struct node *temp=NULL;
+      int data;
+      temp=*head;
 
-	for(i=front;i<=MAX-1;i++)
-	{
-		printf("|%d|",queue[i]);
-		if(i==rear)
-			break;
-	}
-	if(rear<front)
-	{
-		for(i=0;i<=rear;i++)
-			printf("|%d|",queue[i]);
-	}
+      if((*head)->next==NULL)
+      {
+            data=(*head)->data;
+            free(*head);
+            *head=NULL;
+            return data;
+      }
+      while(temp->next->next!=NULL)
+            temp=temp->next;
+
+      data=temp->next->data;
+      free(temp->next);
+      temp->next=NULL;
+
+      return data;
+
 }
-
-
-
